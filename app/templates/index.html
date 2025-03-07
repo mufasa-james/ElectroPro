@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroPro - Electrical Safety Evaluations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Add Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Add Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Authentication Navigation -->
+    <nav class="auth-nav">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('main.login') }}">Login</a>
+            <a href="{{ url_for('main.register') }}">Register</a>
+        {% endif %}
+    </nav>
+
+    <!-- Features Navigation -->
+    {% if current_user.is_authenticated %}
+    <nav class="features-nav">
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('main.evaluations') }}">Evaluations</a>
+        <a href="{{ url_for('main.reports') }}">Reports</a>
+        <a href="{{ url_for('main.payments') }}">Payments</a>
+    </nav>
+    {% endif %}
+
+    <div class="main-content">
+        {% block content %}
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-md-8 offset-md-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="text-center mb-0">Welcome to ElectroPro</h2>
+                        </div>
+                        <div class="card-body">
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+
+                            <div class="text-center mb-4">
+                                <i class="fas fa-bolt fa-3x text-warning mb-3"></i>
+                                {% if current_user.is_authenticated %}
+                                    <h3>Welcome back, {{ current_user.Name }}!</h3>
+                                    <p class="text-muted">Your trusted electrical safety partner</p>
+                                {% else %}
+                                    <h3>Your Trusted Electrical Safety Partner</h3>
+                                {% endif %}
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-clipboard-check fa-2x text-primary mb-3"></i>
+                                            <h4>Safety Evaluations</h4>
+                                            <p>Professional electrical safety compliance evaluations for your property.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-file-alt fa-2x text-primary mb-3"></i>
+                                            <h4>Detailed Reports</h4>
+                                            <p>Comprehensive reports with findings and recommendations.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if not current_user.is_authenticated %}
+                            <div class="text-center mb-4">
+                                <h4>Get Started Today</h4>
+                                <p>Register as a client to book evaluations or as an evaluator to provide services.</p>
+                                <div class="d-flex justify-content-center gap-3">
+                                    <a href="{{ url_for('main.register') }}" class="btn btn-primary">
+                                        <i class="fas fa-user-plus me-2"></i>Register
+                                    </a>
+                                    <a href="{{ url_for('main.login') }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="text-center">
+                                <h4>Need Help?</h4>
+                                <div class="d-flex justify-content-center gap-3">
+                                    <a href="{{ url_for('main.faqs') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-question-circle me-2"></i>FAQs
+                                    </a>
+                                    <a href="{{ url_for('main.report_issue') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-exclamation-circle me-2"></i>Report an Issue
+                                    </a>
+                                    <a href="{{ url_for('main.about') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-info-circle me-2"></i>About Us
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+
+    <!-- Add Bootstrap JS and its dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

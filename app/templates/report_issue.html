@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report an Issue - ElectroPro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Add Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Add Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Authentication Navigation -->
+    <nav class="auth-nav">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('main.login') }}">Login</a>
+            <a href="{{ url_for('main.register') }}">Register</a>
+        {% endif %}
+    </nav>
+
+    <!-- Features Navigation -->
+    {% if current_user.is_authenticated %}
+    <nav class="features-nav">
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('main.evaluations') }}">Evaluations</a>
+        <a href="{{ url_for('main.reports') }}">Reports</a>
+        <a href="{{ url_for('main.payments') }}">Payments</a>
+    </nav>
+    {% endif %}
+
+    <div class="main-content">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-md-8 offset-md-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="text-center mb-0">Report an Issue</h2>
+                        </div>
+                        <div class="card-body">
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+
+                            <form method="POST" action="{{ url_for('main.report_issue') }}">
+                                {{ form.hidden_tag() }}
+                                
+                                <div class="mb-3">
+                                    {{ form.name.label(class="form-label") }}
+                                    {{ form.name(class="form-control") }}
+                                    {% if form.name.errors %}
+                                        {% for error in form.name.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.email.label(class="form-label") }}
+                                    {{ form.email(class="form-control") }}
+                                    {% if form.email.errors %}
+                                        {% for error in form.email.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.issue_type.label(class="form-label") }}
+                                    {{ form.issue_type(class="form-select") }}
+                                    {% if form.issue_type.errors %}
+                                        {% for error in form.issue_type.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.description.label(class="form-label") }}
+                                    {{ form.description(class="form-control", rows="5") }}
+                                    {% if form.description.errors %}
+                                        {% for error in form.description.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.steps_to_reproduce.label(class="form-label") }}
+                                    {{ form.steps_to_reproduce(class="form-control", rows="3") }}
+                                    {% if form.steps_to_reproduce.errors %}
+                                        {% for error in form.steps_to_reproduce.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="text-center">
+                                    {{ form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+
+                            <div class="mt-4">
+                                <h4>Need Immediate Help?</h4>
+                                <p>If you're experiencing a critical issue, please contact our support team directly:</p>
+                                <div class="d-flex justify-content-center gap-3">
+                                    <a href="mailto:support@electropro.com" class="btn btn-outline-primary">
+                                        <i class="fas fa-envelope me-2"></i>Email Support
+                                    </a>
+                                    <a href="tel:+1234567890" class="btn btn-outline-primary">
+                                        <i class="fas fa-phone me-2"></i>Call Support
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Bootstrap JS and its dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+</body>
+</html> 

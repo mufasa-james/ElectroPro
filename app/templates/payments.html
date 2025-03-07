@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments - ElectroPro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Authentication Navigation -->
+    <nav class="auth-nav">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('main.login') }}">Login</a>
+            <a href="{{ url_for('main.register') }}">Register</a>
+        {% endif %}
+    </nav>
+
+    <!-- Features Navigation -->
+    {% if current_user.is_authenticated %}
+    <nav class="features-nav">
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('main.evaluations') }}">Evaluations</a>
+        <a href="{{ url_for('main.reports') }}">Reports</a>
+        <a href="{{ url_for('main.payments') }}">Payments</a>
+    </nav>
+    {% endif %}
+
+    <div class="main-content">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h2>Your Payments</h2>
+            </div>
+
+            {% if payments %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.PaymentID }}</td>
+                            <td>${{ payment.Amount }}</td>
+                            <td>{{ payment.PaymentDate.strftime('%Y-%m-%d %H:%M') if payment.PaymentDate }}</td>
+                            <td>
+                                <span class="badge badge-{{ 'success' if payment.Status == 'Paid' else 'warning' }}">
+                                    {{ payment.Status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if payment.Status == 'Pending' %}
+                                <form action="{{ url_for('main.process_payment', payment_id=payment.PaymentID) }}" method="POST">
+                                    <button type="submit" class="btn btn-primary btn-sm">Pay Now</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center">
+                <h4>No Payments</h4>
+                <p>You don't have any payments to process at this time.</p>
+            </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+</body>
+</html>

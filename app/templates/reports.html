@@ -1,0 +1,160 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Evaluation Reports</h2>
+            </div>
+
+            {% if reports %}
+            <div class="table-responsive">
+        <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Report ID</th>
+                    <th>Location</th>
+                    <th>Date</th>
+                    <th>Overall Rating</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                    <td>#{{ report.ReportID }}</td>
+                            <td>
+                        {% if report.evaluation.evaluation_form %}
+                            {{ report.evaluation.evaluation_form.Location }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>{{ report.GeneratedAt.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if report.evaluation.evaluation_form %}
+                            <span class="badge {{ 'bg-success' if report.evaluation.evaluation_form.overall_rating == 'Excellent' 
+                                               else 'bg-warning' if report.evaluation.evaluation_form.overall_rating == 'Satisfactory' 
+                                               else 'bg-danger' }}">
+                                {{ report.evaluation.evaluation_form.overall_rating }}
+                            </span>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                            </td>
+                            <td>
+                        <span class="badge {{ 'bg-success' if report.evaluation.Status == 'Completed' 
+                                           else 'bg-info' if report.evaluation.Status == 'In Progress' 
+                                           else 'bg-warning' }}">
+                                    {{ report.evaluation.Status }}
+                                </span>
+                            </td>
+                            <td>
+                        <div class="btn-group">
+                            <a href="{{ url_for('main.view_evaluation_form', evaluation_id=report.evaluation.EvaluationID) }}" 
+                               class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View Form
+                            </a>
+                            <a href="{{ url_for('main.download_report', report_id=report.ReportID) }}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="fas fa-download"></i> Download PDF
+                            </a>
+                        </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+    <!-- Detailed Report Cards -->
+    <div class="mt-5">
+        {% for report in reports %}
+            {% if report.evaluation.evaluation_form %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4>Report #{{ report.ReportID }} - {{ report.evaluation.evaluation_form.Location }}</h4>
+                    <div>
+                        <a href="{{ url_for('main.view_evaluation_form', evaluation_id=report.evaluation.EvaluationID) }}" 
+                           class="btn btn-info btn-sm me-2">
+                            <i class="fas fa-eye"></i> View Full Form
+                        </a>
+                        <a href="{{ url_for('main.download_report', report_id=report.ReportID) }}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-download"></i> Download PDF
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Evaluation Date:</strong> 
+                            {{ report.evaluation.evaluation_form.EvaluationDate.strftime('%Y-%m-%d') }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Overall Rating:</strong>
+                            <span class="badge {{ 'bg-success' if report.evaluation.evaluation_form.overall_rating == 'Excellent' 
+                                               else 'bg-warning' if report.evaluation.evaluation_form.overall_rating == 'Satisfactory' 
+                                               else 'bg-danger' }}">
+                                {{ report.evaluation.evaluation_form.overall_rating }}
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Status:</strong>
+                            <span class="badge bg-success">{{ report.evaluation.Status }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h5>Key Findings</h5>
+                        <ul class="list-group">
+                            {% if not report.evaluation.evaluation_form.contractor_license %}
+                            <li class="list-group-item list-group-item-danger">
+                                <i class="fas fa-times-circle"></i> Contractor License Issues
+                            </li>
+                            {% endif %}
+                            {% if not report.evaluation.evaluation_form.wiring_regulations %}
+                            <li class="list-group-item list-group-item-danger">
+                                <i class="fas fa-times-circle"></i> Wiring Regulation Non-Compliance
+                            </li>
+                            {% endif %}
+                            {% if not report.evaluation.evaluation_form.circuit_breakers %}
+                            <li class="list-group-item list-group-item-danger">
+                                <i class="fas fa-times-circle"></i> Circuit Breaker Issues
+                            </li>
+                            {% endif %}
+                            {% if not report.evaluation.evaluation_form.safety_procedures %}
+                            <li class="list-group-item list-group-item-danger">
+                                <i class="fas fa-times-circle"></i> Safety Procedure Concerns
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    {% if report.evaluation.evaluation_form.corrective_actions %}
+                    <div class="mb-3">
+                        <h5>Required Actions</h5>
+                        <p class="text-danger">{{ report.evaluation.evaluation_form.corrective_actions }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+            </div>
+    {% else %}
+    <div class="alert alert-info">
+        <h4 class="alert-heading">No Reports Available</h4>
+        <p>There are no evaluation reports generated yet.</p>
+        {% if current_user.Role == 'Client' %}
+        <hr>
+        <p class="mb-0">
+            <a href="{{ url_for('main.book_evaluation') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Book an Evaluation
+            </a>
+        </p>
+                {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

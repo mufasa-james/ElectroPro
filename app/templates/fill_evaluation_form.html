@@ -1,0 +1,278 @@
+{% extends "index.html" %}
+
+{% block title %}Fill Evaluation Form - ElectroPro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Electrical Safety Evaluation Form</h2>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Evaluation Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <p><strong>Evaluation ID:</strong> {{ evaluation.EvaluationID }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Client name:</strong> {{ evaluation.client.Name }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Status:</strong> {{ evaluation.Status }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Created date:</strong> {{ evaluation.CreatedAt.strftime('%Y-%m-%d') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" class="needs-validation" novalidate>
+                {{ form.csrf_token }}
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Location and Date</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.location.label(class="form-label") }}
+                                    {{ form.location(class="form-control") }}
+                                    {% if form.location.errors %}
+                                        {% for error in form.location.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.evaluation_date.label(class="form-label") }}
+                                    {{ form.evaluation_date(class="form-control", type="date") }}
+                                    {% if form.evaluation_date.errors %}
+                                        {% for error in form.evaluation_date.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>1. General Compliance</h4>
+                        <small class="text-muted">Based on Energy (Electricity Supply) Regulations, 2022 and EPRA Standards</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.contractor_license(class="form-check-input") }}
+                                        {{ form.contractor_license.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">Energy (Electricity Supply) Regulations, 2022</small>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.design_compliance(class="form-check-input") }}
+                                        {{ form.design_compliance.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">EPRA Standards</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.documentation(class="form-check-input") }}
+                                        {{ form.documentation.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">Electric Power Rules, 2006</small>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.testing_records(class="form-check-input") }}
+                                        {{ form.testing_records.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">EPRA Regulations</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.wiring_regulations.label(class="form-label") }}
+                            <div class="form-check">
+                                {{ form.wiring_regulations(class="form-check-input") }}
+                                {{ form.wiring_regulations.label(class="form-check-label") }}
+                            </div>
+                            <small class="text-muted">BS 7671 Wiring Regulations</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>2. Electrical System Safety</h4>
+                        <small class="text-muted">Based on Kenya Electrical Code and EPRA Safety Standards</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.circuit_breakers(class="form-check-input") }}
+                                        {{ form.circuit_breakers.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">Kenya Electrical Code</small>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.earthing_bonding(class="form-check-input") }}
+                                        {{ form.earthing_bonding.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">EPRA Safety Standards</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.exposed_wires(class="form-check-input") }}
+                                        {{ form.exposed_wires.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">Occupational Safety and Health Act, 2007</small>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.rcd_installed(class="form-check-input") }}
+                                        {{ form.rcd_installed.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">IEC 60364 Standard</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.panel_labeling.label(class="form-label") }}
+                            <div class="form-check">
+                                {{ form.panel_labeling(class="form-check-input") }}
+                                {{ form.panel_labeling.label(class="form-check-label") }}
+                            </div>
+                            <small class="text-muted">EPRA Safety Standards</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>3. Workplace Safety & Equipment</h4>
+                        <small class="text-muted">Based on EPRA Standards and Occupational Safety and Health Act, 2007</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.equipment_inspection(class="form-check-input") }}
+                                        {{ form.equipment_inspection.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">EPRA Standards</small>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.safety_signage(class="form-check-input") }}
+                                        {{ form.safety_signage.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">Occupational Safety and Health Act, 2007</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.emergency_switches(class="form-check-input") }}
+                                        {{ form.emergency_switches.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">IEC 60079-17</small>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        {{ form.circuit_loading(class="form-check-input") }}
+                                        {{ form.circuit_loading.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">BS 7671 Wiring Regulations</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.safety_procedures.label(class="form-label") }}
+                            <div class="form-check">
+                                {{ form.safety_procedures(class="form-check-input") }}
+                                {{ form.safety_procedures.label(class="form-check-label") }}
+                            </div>
+                            <small class="text-muted">Electricity Safety Guide</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>4. Final Assessment</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ form.overall_rating.label(class="form-label") }}
+                                    {{ form.overall_rating(class="form-control") }}
+                                    {% if form.overall_rating.errors %}
+                                        {% for error in form.overall_rating.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ form.evaluator_signature.label(class="form-label") }}
+                                    {{ form.evaluator_signature(class="form-control") }}
+                                    {% if form.evaluator_signature.errors %}
+                                        {% for error in form.evaluator_signature.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.corrective_actions.label(class="form-label") }}
+                            {{ form.corrective_actions(class="form-control", rows=3) }}
+                            {% if form.corrective_actions.errors %}
+                                {% for error in form.corrective_actions.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form.additional_comments.label(class="form-label") }}
+                            {{ form.additional_comments(class="form-control", rows=3) }}
+                            {% if form.additional_comments.errors %}
+                                {% for error in form.additional_comments.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mb-4">
+                    <button type="submit" class="btn btn-primary">Submit Evaluation</button>
+                    <a href="{{ url_for('main.evaluations') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluations - ElectroPro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Add Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Add Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Authentication Navigation -->
+    <nav class="auth-nav">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('main.login') }}">Login</a>
+            <a href="{{ url_for('main.register') }}">Register</a>
+        {% endif %}
+    </nav>
+
+    <!-- Features Navigation -->
+    {% if current_user.is_authenticated %}
+    <nav class="features-nav">
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('main.evaluations') }}">Evaluations</a>
+        <a href="{{ url_for('main.reports') }}">Reports</a>
+        <a href="{{ url_for('main.payments') }}">Payments</a>
+    </nav>
+    {% endif %}
+
+    <div class="main-content">
+        <div class="container mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>My Evaluations</h2>
+                {% if current_user.Role == 'Client' %}
+                <a href="{{ url_for('main.book_evaluation') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Book New Evaluation
+                </a>
+                {% endif %}
+            </div>
+
+            {% if evaluations %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            {% if current_user.Role == 'Client' %}
+                            <th>Evaluator</th>
+                            {% endif %}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for evaluation in evaluations %}
+                        <tr>
+                            <td>#{{ evaluation.EvaluationID }}</td>
+                            <td>
+                                <span class="badge {{ 'bg-warning' if evaluation.Status == 'Pending' else 'bg-info' if evaluation.Status == 'In Progress' else 'bg-success' }}">
+                                    {{ evaluation.Status }}
+                                </span>
+                            </td>
+                            <td>{{ evaluation.CreatedAt.strftime('%Y-%m-%d') }}</td>
+                            {% if current_user.Role == 'Client' %}
+                            <td>
+                                {% if evaluation.EvaluatorID %}
+                                {{ evaluation.evaluator.Name }}
+                                {% else %}
+                                Not assigned
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                            <td>
+                                {% if current_user.Role == 'Evaluator' %}
+                                    {% if evaluation.Status == 'Pending' %}
+                                        <a href="{{ url_for('main.accept_evaluation', evaluation_id=evaluation.EvaluationID) }}" 
+                                           class="btn btn-sm btn-success">Accept</a>
+                                    {% elif evaluation.Status == 'In Progress' %}
+                                        <a href="{{ url_for('main.fill_evaluation_form', evaluation_id=evaluation.EvaluationID) }}" 
+                                           class="btn btn-sm btn-primary">Fill Form</a>
+                                    {% endif %}
+                                {% endif %}
+                                
+                                {% if evaluation.evaluation_form %}
+                                    <a href="{{ url_for('main.view_evaluation_form', evaluation_id=evaluation.EvaluationID) }}" 
+                                       class="btn btn-sm btn-info">View Form</a>
+                                    {% if evaluation.report %}
+                                        <a href="{{ url_for('main.download_report', report_id=evaluation.report.ReportID) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-download"></i> Download Report
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                {% if current_user.Role == 'Client' %}
+                No evaluations found. Click the button above to book your first evaluation.
+                {% else %}
+                No evaluations available at the moment.
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <!-- Add Bootstrap JS and its dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

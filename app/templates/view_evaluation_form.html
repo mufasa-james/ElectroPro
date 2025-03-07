@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Evaluation Form - ElectroPro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Add Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Add Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Authentication Navigation -->
+    <nav class="auth-nav">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('main.login') }}">Login</a>
+            <a href="{{ url_for('main.register') }}">Register</a>
+        {% endif %}
+    </nav>
+
+    <!-- Features Navigation -->
+    {% if current_user.is_authenticated %}
+    <nav class="features-nav">
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('main.evaluations') }}">Evaluations</a>
+        <a href="{{ url_for('main.reports') }}">Reports</a>
+        <a href="{{ url_for('main.payments') }}">Payments</a>
+    </nav>
+    {% endif %}
+
+    <div class="main-content">
+        <div class="container mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Electrical Safety Evaluation Report</h2>
+                <a href="{{ url_for('main.download_report', report_id=evaluation.report.ReportID) }}" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download PDF Report
+                </a>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Location and Date</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Location:</strong> {{ form.Location }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Evaluation Date:</strong> {{ form.EvaluationDate.strftime('%Y-%m-%d') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 1: General Compliance -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>1. General Compliance</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.contractor_license else 'bg-danger' }} me-2">
+                                {{ '✓' if form.contractor_license else '✗' }}
+                            </span>
+                            <strong>Electrical Contractor License</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.contractor_license_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.design_compliance else 'bg-danger' }} me-2">
+                                {{ '✓' if form.design_compliance else '✗' }}
+                            </span>
+                            <strong>Design Compliance</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.design_compliance_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.documentation else 'bg-danger' }} me-2">
+                                {{ '✓' if form.documentation else '✗' }}
+                            </span>
+                            <strong>Documentation</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.documentation_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.testing_records else 'bg-danger' }} me-2">
+                                {{ '✓' if form.testing_records else '✗' }}
+                            </span>
+                            <strong>Testing Records</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.testing_records_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.wiring_regulations else 'bg-danger' }} me-2">
+                                {{ '✓' if form.wiring_regulations else '✗' }}
+                            </span>
+                            <strong>Wiring Regulations</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.wiring_regulations_remarks or 'No remarks' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Electrical System Safety -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>2. Electrical System Safety</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.circuit_breakers else 'bg-danger' }} me-2">
+                                {{ '✓' if form.circuit_breakers else '✗' }}
+                            </span>
+                            <strong>Circuit Breakers</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.circuit_breakers_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.earthing_bonding else 'bg-danger' }} me-2">
+                                {{ '✓' if form.earthing_bonding else '✗' }}
+                            </span>
+                            <strong>Earthing and Bonding</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.earthing_bonding_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.exposed_wires else 'bg-danger' }} me-2">
+                                {{ '✓' if form.exposed_wires else '✗' }}
+                            </span>
+                            <strong>Exposed Wires</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.exposed_wires_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.rcd_installed else 'bg-danger' }} me-2">
+                                {{ '✓' if form.rcd_installed else '✗' }}
+                            </span>
+                            <strong>RCD Installation</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.rcd_installed_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.panel_labeling else 'bg-danger' }} me-2">
+                                {{ '✓' if form.panel_labeling else '✗' }}
+                            </span>
+                            <strong>Panel Labeling</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.panel_labeling_remarks or 'No remarks' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Workplace Safety & Equipment -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>3. Workplace Safety & Equipment</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.equipment_inspection else 'bg-danger' }} me-2">
+                                {{ '✓' if form.equipment_inspection else '✗' }}
+                            </span>
+                            <strong>Equipment Inspection</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.equipment_inspection_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.safety_signage else 'bg-danger' }} me-2">
+                                {{ '✓' if form.safety_signage else '✗' }}
+                            </span>
+                            <strong>Safety Signage</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.safety_signage_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.emergency_switches else 'bg-danger' }} me-2">
+                                {{ '✓' if form.emergency_switches else '✗' }}
+                            </span>
+                            <strong>Emergency Switches</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.emergency_switches_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.circuit_loading else 'bg-danger' }} me-2">
+                                {{ '✓' if form.circuit_loading else '✗' }}
+                            </span>
+                            <strong>Circuit Loading</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.circuit_loading_remarks or 'No remarks' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge {{ 'bg-success' if form.safety_procedures else 'bg-danger' }} me-2">
+                                {{ '✓' if form.safety_procedures else '✗' }}
+                            </span>
+                            <strong>Safety Procedures</strong>
+                        </div>
+                        <p class="text-muted mt-2">{{ form.safety_procedures_remarks or 'No remarks' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Final Assessment -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>4. Final Assessment</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Overall Rating:</strong>
+                        <span class="badge {{ 'bg-success' if form.overall_rating == 'Excellent' else 'bg-warning' if form.overall_rating == 'Satisfactory' else 'bg-danger' }}">
+                            {{ form.overall_rating }}
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Corrective Actions Required:</strong>
+                        <p class="mt-2">{{ form.corrective_actions or 'None specified' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Additional Comments:</strong>
+                        <p class="mt-2">{{ form.additional_comments or 'None' }}</p>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <p><strong>Evaluator Signature:</strong> {{ form.evaluator_signature }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Date:</strong> {{ form.signed_date.strftime('%Y-%m-%d') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-4">
+                <a href="{{ url_for('main.evaluations') }}" class="btn btn-secondary">Back to Evaluations</a>
+                <a href="{{ url_for('main.download_report', report_id=evaluation.report.ReportID) }}" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download PDF Report
+                </a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <!-- Add Bootstrap JS and its dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+</body>
+</html> 

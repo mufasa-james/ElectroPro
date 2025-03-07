@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Evaluation - ElectroPro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Authentication Navigation -->
+    <nav class="auth-nav">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('main.login') }}">Login</a>
+            <a href="{{ url_for('main.register') }}">Register</a>
+        {% endif %}
+    </nav>
+
+    <!-- Features Navigation -->
+    {% if current_user.is_authenticated %}
+    <nav class="features-nav">
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('main.evaluations') }}">Evaluations</a>
+        <a href="{{ url_for('main.reports') }}">Reports</a>
+        <a href="{{ url_for('main.payments') }}">Payments</a>
+    </nav>
+    {% endif %}
+
+    <div class="main-content">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h2>Book New Evaluation</h2>
+            </div>
+
+            <form method="POST" class="form">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    {{ form.property_type.label }}
+                    {{ form.property_type(class="form-control") }}
+                    {% if form.property_type.errors %}
+                        {% for error in form.property_type.errors %}
+                            <span class="error">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-section">
+                    <h3>Property Location</h3>
+                    
+                    <div class="form-group">
+                        {{ form.street_address.label }}
+                        {{ form.street_address(class="form-control", placeholder="Enter street name and number") }}
+                        {% if form.street_address.errors %}
+                            {% for error in form.street_address.errors %}
+                                <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.town.label }}
+                        {{ form.town(class="form-control", placeholder="Enter town/city") }}
+                        {% if form.town.errors %}
+                            {% for error in form.town.errors %}
+                                <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.county.label }}
+                        {{ form.county(class="form-control", placeholder="Enter county") }}
+                        {% if form.county.errors %}
+                            {% for error in form.county.errors %}
+                                <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Previous Evaluation</h3>
+                    
+                    <div class="form-group">
+                        {{ form.previous_evaluation.label }}
+                        <div class="radio-group">
+                            {% for subfield in form.previous_evaluation %}
+                                <div class="radio-option">
+                                    {{ subfield }}
+                                    {{ subfield.label }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.previous_evaluation.errors %}
+                            {% for error in form.previous_evaluation.errors %}
+                                <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group" id="last-evaluation-date">
+                        {{ form.last_evaluation_date.label }}
+                        {{ form.last_evaluation_date(class="form-control") }}
+                        <small class="form-text text-muted">{{ form.last_evaluation_date.description }}</small>
+                        {% if form.last_evaluation_date.errors %}
+                            {% for error in form.last_evaluation_date.errors %}
+                                <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {{ form.preferred_date.label }}
+                    {{ form.preferred_date(class="form-control", type="date") }}
+                    {% if form.preferred_date.errors %}
+                        {% for error in form.preferred_date.errors %}
+                            <span class="error">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.notes.label }}
+                    {{ form.notes(class="form-control", placeholder="Any additional information or special requirements") }}
+                    {% if form.notes.errors %}
+                        {% for error in form.notes.errors %}
+                            <span class="error">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Book Evaluation</button>
+                    <a href="{{ url_for('main.evaluations') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <script>
+        // Show/hide last evaluation date based on radio selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const previousEvalRadios = document.getElementsByName('previous_evaluation');
+            const lastEvalDateDiv = document.getElementById('last-evaluation-date');
+            
+            function updateLastEvalDateVisibility() {
+                const hasHadEvaluation = document.querySelector('input[name="previous_evaluation"]:checked')?.value === 'yes';
+                lastEvalDateDiv.style.display = hasHadEvaluation ? 'block' : 'none';
+                if (!hasHadEvaluation) {
+                    document.getElementById('last_evaluation_date').value = '';
+                }
+            }
+
+            previousEvalRadios.forEach(radio => {
+                radio.addEventListener('change', updateLastEvalDateVisibility);
+            });
+
+            // Initial state
+            updateLastEvalDateVisibility();
+        });
+    </script>
+</body>
+</html>
