@@ -42,7 +42,7 @@ class EvaluationBookingForm(FlaskForm):
         ('residential', 'Residential'),
         ('commercial', 'Commercial'),
         ('industrial', 'Industrial')
-    ])
+    ], validators=[DataRequired()])
     street_address = StringField('Street Address', validators=[DataRequired()])
     town = StringField('Town/City', validators=[DataRequired()])
     county = SelectField('County', choices=[
@@ -95,13 +95,17 @@ class EvaluationBookingForm(FlaskForm):
         ('West Pokot', 'West Pokot')
     ])
     preferred_date = DateField('Preferred Date', validators=[DataRequired()])
-    previous_evaluation = SelectField('Previous Evaluation', choices=[
+    previous_evaluation = RadioField('Previous Evaluation', choices=[
         ('yes', 'Yes'),
         ('no', 'No')
-    ])
-    last_evaluation_date = DateField('Last Evaluation Date')
+    ], validators=[DataRequired()])
+    last_evaluation_date = DateField('Last Evaluation Date', validators=[Optional()])
     notes = TextAreaField('Additional Notes')
     submit = SubmitField('Book Evaluation')
+
+    def validate_last_evaluation_date(self, field):
+        if self.previous_evaluation.data == 'yes' and not field.data:
+            raise ValidationError('Please provide the date of the last evaluation')
 
 class EvaluationFormForm(FlaskForm):
     # Location and Date

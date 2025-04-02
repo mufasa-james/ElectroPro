@@ -118,23 +118,28 @@ def book_evaluation():
         # Combine address components
         full_address = f"{form.street_address.data}\n{form.town.data}\n{form.county.data}"
         
-        evaluation = Evaluation(
-            ClientID=current_user.UserID,
-            Status='Pending',
-            Comments=f"""
+        try:
+            evaluation = Evaluation(
+                ClientID=current_user.UserID,
+                Status='Pending',
+                Comments=f"""
 Property Type: {form.property_type.data}
 Property Address: {full_address}
 Preferred Date: {form.preferred_date.data}
 Previous Evaluation: {form.previous_evaluation.data}
 Last Evaluation Date: {form.last_evaluation_date.data if form.previous_evaluation.data == 'yes' else 'N/A'}
 Additional Notes: {form.notes.data}
-            """.strip(),
-            CreatedAt=datetime.utcnow()
-        )
-        db.session.add(evaluation)
-        db.session.commit()
-        flash('Evaluation booked successfully! We will contact you to confirm the appointment.', 'success')
-        return redirect(url_for('main.evaluations'))
+                """.strip(),
+                CreatedAt=datetime.utcnow()
+            )
+            db.session.add(evaluation)
+            db.session.commit()
+            flash('Evaluation booked successfully! We will contact you to confirm the appointment.', 'success')
+            return redirect(url_for('main.evaluations'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error booking evaluation: {str(e)}', 'danger')
+            
     return render_template('book_evaluation.html', form=form)
 
 @main.route('/accept-evaluation/<int:evaluation_id>')
@@ -142,15 +147,23 @@ Additional Notes: {form.notes.data}
 @evaluator_required
 def accept_evaluation(evaluation_id):
     evaluation = Evaluation.query.get_or_404(evaluation_id)
+    
     if evaluation.Status != 'Pending':
-        flash('This evaluation has already been accepted.', 'warning')
+        flash('This evaluation is no longer available.', 'warning')
         return redirect(url_for('main.evaluations'))
     
-    evaluation.Status = 'In Progress'
     evaluation.EvaluatorID = current_user.UserID
-    db.session.commit()
-    flash('Evaluation accepted successfully. Please fill out the evaluation form.', 'success')
-    return redirect(url_for('main.fill_evaluation_form', evaluation_id=evaluation_id))
+    evaluation.Status = 'In Progress'  # Changed from 'Assigned' to 'In Progress'
+    evaluation.AssignedDate = datetime.utcnow()
+    
+    try:
+        db.session.commit()
+        flash('Evaluation accepted successfully. You can now fill out the evaluation form.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while accepting the evaluation.', 'danger')
+    
+    return redirect(url_for('main.evaluations'))
 
 @main.route('/complete-evaluation/<int:evaluation_id>')
 @login_required
@@ -250,74 +263,85 @@ def fill_evaluation_form(evaluation_id):
     
     form = EvaluationFormForm()
     if form.validate_on_submit():
-        print("Form validated successfully")  # Debug log
-        evaluation_form = EvaluationForm(
-            EvaluationID=evaluation_id,
-            Location=form.location.data,
-            EvaluationDate=form.evaluation_date.data,
-            
-            # Section 1
-            contractor_license=form.contractor_license.data,
-            contractor_license_remarks=form.contractor_license_remarks.data,
-            design_compliance=form.design_compliance.data,
-            design_compliance_remarks=form.design_compliance_remarks.data,
-            documentation=form.documentation.data,
-            documentation_remarks=form.documentation_remarks.data,
-            testing_records=form.testing_records.data,
-            testing_records_remarks=form.testing_records_remarks.data,
-            wiring_regulations=form.wiring_regulations.data,
-            wiring_regulations_remarks=form.wiring_regulations_remarks.data,
-            
-            # Section 2
-            circuit_breakers=form.circuit_breakers.data,
-            circuit_breakers_remarks=form.circuit_breakers_remarks.data,
-            earthing_bonding=form.earthing_bonding.data,
-            earthing_bonding_remarks=form.earthing_bonding_remarks.data,
-            exposed_wires=form.exposed_wires.data,
-            exposed_wires_remarks=form.exposed_wires_remarks.data,
-            rcd_installed=form.rcd_installed.data,
-            rcd_installed_remarks=form.rcd_installed_remarks.data,
-            panel_labeling=form.panel_labeling.data,
-            panel_labeling_remarks=form.panel_labeling_remarks.data,
-            
-            # Section 3
-            equipment_inspection=form.equipment_inspection.data,
-            equipment_inspection_remarks=form.equipment_inspection_remarks.data,
-            safety_signage=form.safety_signage.data,
-            safety_signage_remarks=form.safety_signage_remarks.data,
-            emergency_switches=form.emergency_switches.data,
-            emergency_switches_remarks=form.emergency_switches_remarks.data,
-            circuit_loading=form.circuit_loading.data,
-            circuit_loading_remarks=form.circuit_loading_remarks.data,
-            safety_procedures=form.safety_procedures.data,
-            safety_procedures_remarks=form.safety_procedures_remarks.data,
-            
-            # Section 4
-            overall_rating=form.overall_rating.data,
-            corrective_actions=form.corrective_actions.data,
-            additional_comments=form.additional_comments.data,
-            evaluator_signature=form.evaluator_signature.data,
-            signed_date=datetime.now().date()
-        )
-        
-        print("Created evaluation form object")  # Debug log
-        db.session.add(evaluation_form)
-        
+        print("Form validation passed")  # Debug log
         try:
-            # Generate and save the report
-            print("Generating report content...")  # Debug log
+            # First create and save the evaluation form
+            evaluation_form = EvaluationForm(
+                EvaluationID=evaluation_id,
+                Location=form.location.data,
+                EvaluationDate=form.evaluation_date.data,
+                
+                # Section 1
+                contractor_license=form.contractor_license.data,
+                contractor_license_remarks=form.contractor_license_remarks.data,
+                design_compliance=form.design_compliance.data,
+                design_compliance_remarks=form.design_compliance_remarks.data,
+                documentation=form.documentation.data,
+                documentation_remarks=form.documentation_remarks.data,
+                testing_records=form.testing_records.data,
+                testing_records_remarks=form.testing_records_remarks.data,
+                wiring_regulations=form.wiring_regulations.data,
+                wiring_regulations_remarks=form.wiring_regulations_remarks.data,
+                
+                # Section 2
+                circuit_breakers=form.circuit_breakers.data,
+                circuit_breakers_remarks=form.circuit_breakers_remarks.data,
+                earthing_bonding=form.earthing_bonding.data,
+                earthing_bonding_remarks=form.earthing_bonding_remarks.data,
+                exposed_wires=form.exposed_wires.data,
+                exposed_wires_remarks=form.exposed_wires_remarks.data,
+                rcd_installed=form.rcd_installed.data,
+                rcd_installed_remarks=form.rcd_installed_remarks.data,
+                panel_labeling=form.panel_labeling.data,
+                panel_labeling_remarks=form.panel_labeling_remarks.data,
+                
+                # Section 3
+                equipment_inspection=form.equipment_inspection.data,
+                equipment_inspection_remarks=form.equipment_inspection_remarks.data,
+                safety_signage=form.safety_signage.data,
+                safety_signage_remarks=form.safety_signage_remarks.data,
+                emergency_switches=form.emergency_switches.data,
+                emergency_switches_remarks=form.emergency_switches_remarks.data,
+                circuit_loading=form.circuit_loading.data,
+                circuit_loading_remarks=form.circuit_loading_remarks.data,
+                safety_procedures=form.safety_procedures.data,
+                safety_procedures_remarks=form.safety_procedures_remarks.data,
+                
+                # Section 4
+                overall_rating=form.overall_rating.data,
+                corrective_actions=form.corrective_actions.data,
+                additional_comments=form.additional_comments.data,
+                evaluator_signature=form.evaluator_signature.data,
+                signed_date=datetime.now().date()
+            )
+            
+            print("Created evaluation form object")  # Debug log
+            db.session.add(evaluation_form)
+            print("Added form to session")  # Debug log
+            
+            try:
+                db.session.flush()
+                print("Session flush successful")  # Debug log
+            except Exception as flush_error:
+                print(f"Flush error: {str(flush_error)}")  # Debug log
+                raise flush_error
+            
+            # Generate report content
+            print("Generating report...")  # Debug log
             report_content = generate_evaluation_report(evaluation_form)
+            
+            # Create report file
             report_filename = f'evaluation_report_{evaluation_id}.pdf'
             report_path = os.path.join(current_app.config['REPORT_UPLOAD_FOLDER'], report_filename)
+            print(f"Report will be saved to: {report_path}")  # Debug log
             
-            print(f"Report path: {report_path}")  # Debug log
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(report_path), exist_ok=True)
             
-            # Ensure the directory exists
-            os.makedirs(current_app.config['REPORT_UPLOAD_FOLDER'], exist_ok=True)
-            
-            # Save report content to PDF
-            print("Saving report to PDF...")  # Debug log
+            # Save PDF
+            print("Saving PDF...")  # Debug log
             save_report_to_pdf(report_content, report_path)
+            print("PDF saved successfully")  # Debug log
             
             # Create Report record
             report = Report(
@@ -325,22 +349,28 @@ def fill_evaluation_form(evaluation_id):
                 ReportFilePath=report_path
             )
             db.session.add(report)
+            print("Added report to session")  # Debug log
             
             # Update evaluation status
             evaluation.Status = 'Completed'
+            print("Updated evaluation status")  # Debug log
             
-            print("Committing changes to database...")  # Debug log
+            # Commit all changes
             db.session.commit()
-            print("Changes committed successfully")  # Debug log
-            flash('Evaluation form submitted successfully!', 'success')
-            return redirect(url_for('main.evaluations'))
+            print("All changes committed successfully")  # Debug log
+            
+            flash('Evaluation form submitted and report generated successfully!', 'success')
+            return redirect(url_for('main.view_evaluation_form', evaluation_id=evaluation_id))
             
         except Exception as e:
-            print(f"Error occurred: {str(e)}")  # Debug log
+            print(f"Error details: {str(e)}")  # Debug log
             db.session.rollback()
             flash(f'Error saving the evaluation form: {str(e)}', 'danger')
             return render_template('fill_evaluation_form.html', form=form, evaluation=evaluation)
-        
+    else:
+        print("Form validation failed")  # Debug log
+        print("Form errors:", form.errors)  # Debug log
+    
     # Pre-fill form with evaluation and user data
     form.location.data = evaluation.Comments.split('\nProperty Address: ')[1].split('\n')[0]
     return render_template('fill_evaluation_form.html', form=form, evaluation=evaluation)
@@ -438,25 +468,95 @@ def generate_evaluation_report(evaluation_form):
     return report_content
 
 def save_report_to_pdf(content, filepath):
-    """Save the report content to a PDF file"""
-    doc = SimpleDocTemplate(filepath, pagesize=A4)
+    """Save the report content to a PDF file with branded styling"""
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from reportlab.lib.units import inch
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    
+    doc = SimpleDocTemplate(
+        filepath,
+        pagesize=A4,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=72
+    )
+    
+    # Define brand colors
+    navy_blue = colors.HexColor('#1a237e')
+    yellow = colors.HexColor('#ffd700')
+    grey = colors.HexColor('#424242')
+    
     styles = getSampleStyleSheet()
+    
+    # Define custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        alignment=TA_CENTER,
+        textColor=navy_blue,
+        spaceAfter=30
+    )
+    
+    section_style = ParagraphStyle(
+        'CustomSection',
+        parent=styles['Heading2'],
+        fontSize=16,
+        textColor=navy_blue,
+        spaceBefore=20,
+        spaceAfter=10,
+        backColor=yellow.clone(alpha=0.2)
+    )
+    
+    item_style = ParagraphStyle(
+        'CustomItem',
+        parent=styles['Normal'],
+        fontSize=12,
+        textColor=grey,
+        leftIndent=20,
+        spaceAfter=6,
+        leading=16
+    )
+    
+    normal_style = ParagraphStyle(
+        'CustomNormal',
+        parent=styles['Normal'],
+        fontSize=12,
+        textColor=grey,
+        spaceAfter=12,
+        leading=16
+    )
+    
     story = []
     
-    # Split content into lines and create paragraphs
+    # Process content line by line
     for line in content.split('\n'):
-        if line.strip():
-            if line.startswith('    '): # Indented lines
-                style = ParagraphStyle(
-                    'Indented',
-                    parent=styles['Normal'],
-                    leftIndent=20,
-                    spaceAfter=5
-                )
-            else:
-                style = styles['Normal']
-            story.append(Paragraph(line, style))
-            story.append(Spacer(1, 0.1 * inch))
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Clean up special characters
+        line = line.replace('✓', 'Yes').replace('✗', 'No')
+        
+        if 'ELECTROPRO' in line:
+            story.append(Paragraph(line, title_style))
+            story.append(Spacer(1, 20))
+        elif any(line.startswith(str(i)) for i in range(1, 5)):
+            story.append(Spacer(1, 10))
+            story.append(Paragraph(line, section_style))
+            story.append(Spacer(1, 10))
+        elif line.startswith(('-', '•')):
+            story.append(Paragraph(line, item_style))
+        elif line.startswith(('Evaluation ID:', 'Location:', 'Date:')):
+            story.append(Paragraph(line, normal_style))
+        elif 'Remarks:' in line:
+            story.append(Paragraph(line, item_style))
+        else:
+            story.append(Paragraph(line, normal_style))
     
     doc.build(story)
 

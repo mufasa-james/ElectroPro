@@ -1,4 +1,4 @@
-# requirements.txt - Auto-generated
+# requirements.txt
 
 Flask==2.3.3
 Flask-SQLAlchemy==3.1.1

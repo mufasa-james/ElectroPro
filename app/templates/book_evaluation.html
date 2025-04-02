@@ -84,14 +84,14 @@
                     <h3>Previous Evaluation</h3>
                     
                     <div class="form-group">
-                        {{ form.previous_evaluation.label }}
+                        <label>Have you had a previous evaluation?</label>
                         <div class="radio-group">
-                            {% for subfield in form.previous_evaluation %}
-                                <div class="radio-option">
-                                    {{ subfield }}
-                                    {{ subfield.label }}
-                                </div>
-                            {% endfor %}
+                            <label class="radio-option">
+                                <input type="radio" name="previous_evaluation" value="yes" class="radio-input"> Yes
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="previous_evaluation" value="no" class="radio-input"> No
+                            </label>
                         </div>
                         {% if form.previous_evaluation.errors %}
                             {% for error in form.previous_evaluation.errors %}
@@ -149,24 +149,29 @@
     </div>
 
     <script>
-        // Show/hide last evaluation date based on radio selection
         document.addEventListener('DOMContentLoaded', function() {
-            const previousEvalRadios = document.getElementsByName('previous_evaluation');
+            const previousEvalRadios = document.querySelectorAll('input[name="previous_evaluation"]');
             const lastEvalDateDiv = document.getElementById('last-evaluation-date');
             
             function updateLastEvalDateVisibility() {
-                const hasHadEvaluation = document.querySelector('input[name="previous_evaluation"]:checked')?.value === 'yes';
+                const selectedRadio = Array.from(previousEvalRadios).find(radio => radio.checked);
+                const hasHadEvaluation = selectedRadio && selectedRadio.value === 'yes';
                 lastEvalDateDiv.style.display = hasHadEvaluation ? 'block' : 'none';
+                
                 if (!hasHadEvaluation) {
-                    document.getElementById('last_evaluation_date').value = '';
+                    const dateInput = document.getElementById('last_evaluation_date');
+                    if (dateInput) {
+                        dateInput.value = '';
+                    }
                 }
             }
 
+            // Add event listeners to radio buttons
             previousEvalRadios.forEach(radio => {
                 radio.addEventListener('change', updateLastEvalDateVisibility);
             });
 
-            // Initial state
+            // Run on initial page load
             updateLastEvalDateVisibility();
         });
     </script>

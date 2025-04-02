@@ -78,6 +78,7 @@
                                         {{ form.contractor_license.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">Energy (Electricity Supply) Regulations, 2022</small>
+                                    {{ form.contractor_license_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                                 <div class="form-group mb-3">
                                     <div class="form-check">
@@ -85,6 +86,7 @@
                                         {{ form.design_compliance.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">EPRA Standards</small>
+                                    {{ form.design_compliance_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -94,6 +96,7 @@
                                         {{ form.documentation.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">Electric Power Rules, 2006</small>
+                                    {{ form.documentation_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                                 <div class="form-group mb-3">
                                     <div class="form-check">
@@ -101,6 +104,7 @@
                                         {{ form.testing_records.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">EPRA Regulations</small>
+                                    {{ form.testing_records_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                             </div>
                         </div>
@@ -111,6 +115,7 @@
                                 {{ form.wiring_regulations.label(class="form-check-label") }}
                             </div>
                             <small class="text-muted">BS 7671 Wiring Regulations</small>
+                            {{ form.wiring_regulations_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                         </div>
                     </div>
                 </div>
@@ -129,6 +134,7 @@
                                         {{ form.circuit_breakers.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">Kenya Electrical Code</small>
+                                    {{ form.circuit_breakers_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                                 <div class="form-group mb-3">
                                     <div class="form-check">
@@ -136,6 +142,7 @@
                                         {{ form.earthing_bonding.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">EPRA Safety Standards</small>
+                                    {{ form.earthing_bonding_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -145,6 +152,7 @@
                                         {{ form.exposed_wires.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">Occupational Safety and Health Act, 2007</small>
+                                    {{ form.exposed_wires_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                                 <div class="form-group mb-3">
                                     <div class="form-check">
@@ -152,6 +160,7 @@
                                         {{ form.rcd_installed.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">IEC 60364 Standard</small>
+                                    {{ form.rcd_installed_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                             </div>
                         </div>
@@ -162,6 +171,7 @@
                                 {{ form.panel_labeling.label(class="form-check-label") }}
                             </div>
                             <small class="text-muted">EPRA Safety Standards</small>
+                            {{ form.panel_labeling_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                         </div>
                     </div>
                 </div>
@@ -180,6 +190,7 @@
                                         {{ form.equipment_inspection.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">EPRA Standards</small>
+                                    {{ form.equipment_inspection_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                                 <div class="form-group mb-3">
                                     <div class="form-check">
@@ -187,6 +198,7 @@
                                         {{ form.safety_signage.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">Occupational Safety and Health Act, 2007</small>
+                                    {{ form.safety_signage_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -196,6 +208,7 @@
                                         {{ form.emergency_switches.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">IEC 60079-17</small>
+                                    {{ form.emergency_switches_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                                 <div class="form-group mb-3">
                                     <div class="form-check">
@@ -203,6 +216,7 @@
                                         {{ form.circuit_loading.label(class="form-check-label") }}
                                     </div>
                                     <small class="text-muted">BS 7671 Wiring Regulations</small>
+                                    {{ form.circuit_loading_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                                 </div>
                             </div>
                         </div>
@@ -213,6 +227,7 @@
                                 {{ form.safety_procedures.label(class="form-check-label") }}
                             </div>
                             <small class="text-muted">Electricity Safety Guide</small>
+                            {{ form.safety_procedures_remarks(class="form-control mt-2", placeholder="Enter remarks") }}
                         </div>
                     </div>
                 </div>
@@ -275,4 +290,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
