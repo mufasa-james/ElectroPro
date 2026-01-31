@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,14 +11,15 @@
     <!-- Add Font Awesome for icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <!-- Authentication Navigation -->
     <nav class="auth-nav">
         {% if current_user.is_authenticated %}
-            <a href="{{ url_for('main.logout') }}">Logout</a>
+        <a href="{{ url_for('main.logout') }}">Logout</a>
         {% else %}
-            <a href="{{ url_for('main.login') }}">Login</a>
-            <a href="{{ url_for('main.register') }}">Register</a>
+        <a href="{{ url_for('main.login') }}">Login</a>
+        <a href="{{ url_for('main.register') }}">Register</a>
         {% endif %}
     </nav>
 
@@ -35,7 +37,8 @@
         <div class="container mt-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Electrical Safety Evaluation Report</h2>
-                <a href="{{ url_for('main.download_report', report_id=evaluation.report.ReportID) }}" class="btn btn-primary">
+                <a href="{{ url_for('main.download_report', report_id=evaluation.report.ReportID) }}"
+                    class="btn btn-primary">
                     <i class="fas fa-download"></i> Download PDF Report
                 </a>
             </div>
@@ -236,16 +239,36 @@
                     <h4>4. Final Assessment</h4>
                 </div>
                 <div class="card-body">
+                    <!-- Speedometer Gauge -->
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-md-6 text-center">
+                            <canvas id="complianceGauge"></canvas>
+                            <h3 class="mt-2" id="scoreLabel">Score: {{ evaluation.Score|int if evaluation.Score else 0
+                                }}/100</h3>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <strong>Overall Rating:</strong>
-                        <span class="badge {{ 'bg-success' if form.overall_rating == 'Excellent' else 'bg-warning' if form.overall_rating == 'Satisfactory' else 'bg-danger' }}">
+                        {% set rating_class = 'bg-danger' %}
+                        {% if form.overall_rating == 'Excellent' %}
+                        {% set rating_class = 'bg-success' %}
+                        {% elif form.overall_rating == 'Satisfactory' %}
+                        {% set rating_class = 'bg-warning text-dark' %}
+                        {% elif form.overall_rating == 'Needs Improvement' %}
+                        {% set rating_class = 'bg-warning' %} <!-- Orange-ish -->
+                        {% endif %}
+                        <span class="badge {{ rating_class }} fs-5">
                             {{ form.overall_rating }}
                         </span>
                     </div>
 
                     <div class="mb-3">
                         <strong>Corrective Actions Required:</strong>
-                        <p class="mt-2">{{ form.corrective_actions or 'None specified' }}</p>
+                        <div class="alert alert-light border">
+                            <pre
+                                style="white-space: pre-wrap; font-family: inherit;">{{ form.corrective_actions or 'None specified' }}</pre>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -266,25 +289,81 @@
                 </div>
             </div>
 
-            <div class="text-center mb-4">
-                <a href="{{ url_for('main.evaluations') }}" class="btn btn-secondary">Back to Evaluations</a>
-                <a href="{{ url_for('main.download_report', report_id=evaluation.report.ReportID) }}" class="btn btn-primary">
-                    <i class="fas fa-download"></i> Download PDF Report
-                </a>
-            </div>
+            <!-- Chart.js Script for Speedometer -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const ctx = document.getElementById('complianceGauge').getContext('2d');
+                    const score = {{ evaluation.Score| int if evaluation.Score else 0
+                }};
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-        </div>
-    </div>
+                // Gauge Chart (Doughnut with needle workaround)
+                const data = {
+                    labels: ['Non-Compliant', 'Needs Improvement', 'Satisfactory', 'Excellent'],
+                    datasets: [{
+                        data: [60, 15, 15, 10], // Sections: 0-60, 60-75, 75-90, 90-100
+                        backgroundColor: [
+                            'rgba(220, 53, 69, 0.8)',   // Red (0-60%)
+                            'rgba(255, 193, 7, 0.8)',   // Orange (60-75%)
+                            'rgba(255, 235, 59, 0.8)',  // Yellow/Greenish (75-90%) - let's make it lighter green
+                            'rgba(25, 135, 84, 0.8)'    // Green (90-100%)
+                        ],
+                        borderWidth: 0,
+                        cutout: '50%',
+                        rotation: 270, // Start at bottom
+                        circumference: 180 // Half circle
+                    }]
+                };
 
-    <!-- Add Bootstrap JS and its dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+                const gaugeChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        aspectRatio: 1.5,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    },
+                    plugins: [{
+                        id: 'gaugeNeedle',
+                        afterDatasetDraw(chart, args, options) {
+                            const { ctx, config, data, chartArea: { top, bottom, left, right, width, height } } = chart;
+
+                            ctx.save();
+                            const needleValue = score;
+                            const dataTotal = 100;
+                            const angle = Math.PI + (1 / dataTotal * needleValue * Math.PI);
+                            const cx = width / 2;
+                            const cy = chart._metasets[0].data[0].y;
+
+                            // Draw needle
+                            ctx.translate(cx, cy);
+                            ctx.rotate(angle);
+                            ctx.beginPath();
+                            ctx.moveTo(0, -2);
+                            ctx.lineTo(height / 2 - 20, 0); // Needle length
+                            ctx.lineTo(0, 2);
+                            ctx.fillStyle = '#444';
+                            ctx.fill();
+
+                            // Draw needle center circle
+                            ctx.rotate(-angle);
+                            ctx.beginPath();
+                            ctx.arc(0, 0, 5, 0, Math.PI * 2);
+                            ctx.fillStyle = '#444';
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }]
+                });
+                });
+            </script>
+
+            <!-- Add Bootstrap JS and its dependencies -->
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
 </body>
-</html> 
+
+</html>

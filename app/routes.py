@@ -13,6 +13,76 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 
+from reportlab.lib.units import inch
+
+# --- AUTOMATED ASSESSMENT CONFIGURATION ---
+ASSESSMENT_CRITERIA = {
+    # Section 1: General Compliance (Total: 30)
+    'contractor_license': {'weight': 6, 'critical': False, 'msg': 'Contractor license missing or invalid.'},
+    'design_compliance': {'weight': 6, 'critical': False, 'msg': 'Work does not comply with approved design.'},
+    'documentation': {'weight': 6, 'critical': False, 'msg': 'Documentation incomplete or missing.'},
+    'testing_records': {'weight': 6, 'critical': False, 'msg': 'Testing records unavailable.'},
+    'wiring_regulations': {'weight': 6, 'critical': True, 'msg': 'Violation of BS 7671 wiring regulations.'},
+
+    # Section 2: Electrical System Safety (Total: 40)
+    'circuit_breakers': {'weight': 10, 'critical': True, 'msg': 'Circuit breakers improperly rated or faulty.'},
+    'earthing_bonding': {'weight': 10, 'critical': True, 'msg': 'Improper earthing and bonding.'},
+    'exposed_wires': {'weight': 10, 'critical': True, 'msg': 'Exposed live wires detected.'},
+    'rcd_installed': {'weight': 8, 'critical': True, 'msg': 'RCDs not installed or non-functional.'},
+    'panel_labeling': {'weight': 2, 'critical': False, 'msg': 'Electrical panels not properly labeled.'},
+
+    # Section 3: Workplace Safety & Equipment (Total: 30)
+    'equipment_inspection': {'weight': 6, 'critical': False, 'msg': 'Equipment not inspected/maintained.'},
+    'safety_signage': {'weight': 4, 'critical': False, 'msg': 'Safety signage missing.'},
+    'emergency_switches': {'weight': 8, 'critical': True, 'msg': 'Emergency switches inaccessible or missing.'},
+    'circuit_loading': {'weight': 8, 'critical': True, 'msg': 'Circuits are overloaded.'},
+    'safety_procedures': {'weight': 4, 'critical': False, 'msg': 'Safety procedures not established.'}
+}
+
+def calculate_assessment_score(form_data):
+    """
+    Calculates the compliance score based on form data and ASSESSMENT_CRITERIA.
+    Returns: (rating, score, auto_generated_corrective_actions)
+    """
+    score = 0
+    total_possible = sum(item['weight'] for item in ASSESSMENT_CRITERIA.values())
+    critical_failures = []
+    auto_corrective_actions = []
+
+    for field_name, criteria in ASSESSMENT_CRITERIA.items():
+        # Get the boolean value from the form data (True = Compliant, False = Non-Compliant)
+        # Note: We assume the form field names match the keys in ASSESSMENT_CRITERIA
+        is_compliant = getattr(form_data, field_name).data
+
+        if is_compliant:
+            score += criteria['weight']
+        else:
+            # If not compliant, check if it's critical
+            if criteria['critical']:
+                critical_failures.append(criteria['msg'])
+            
+            # valid failure, add to corrective actions
+            auto_corrective_actions.append(f"- {criteria['msg']}")
+
+    # Determine Rating
+    if critical_failures:
+        rating = 'Non-Compliant'
+        # Optional: You might want to force the score to reflect the failure, or keep the raw score.
+        # Let's keep the raw score but cap the rating.
+    else:
+        # Standard grading scale
+        percentage = (score / total_possible) * 100
+        if percentage >= 90:
+            rating = 'Excellent'
+        elif percentage >= 75:
+            rating = 'Satisfactory'
+        elif percentage >= 60:
+            rating = 'Needs Improvement'
+        else:
+            rating = 'Non-Compliant'
+
+    return rating, score, auto_corrective_actions
+
 # Define Blueprint
 main = Blueprint('main', __name__)
 
@@ -264,6 +334,20 @@ def fill_evaluation_form(evaluation_id):
     form = EvaluationFormForm()
     if form.validate_on_submit():
         print("Form validation passed")  # Debug log
+        
+        # --- AUTOMATED SCORING & COMPLIANCE LOGIC ---
+        calculated_rating, calculated_score, auto_actions = calculate_assessment_score(form)
+        
+        # Merge auto-generated actions with user's comments
+        manual_actions = form.corrective_actions.data or ""
+        if auto_actions:
+            combined_actions = "AUTOMATED FINDINGS:\n" + "\n".join(auto_actions) + "\n\nEVALUATOR NOTES:\n" + manual_actions
+        else:
+            combined_actions = manual_actions
+            
+        print(f"Automated Assessment: Rating={calculated_rating}, Score={calculated_score}")
+        # -----------------------------------------------
+
         try:
             # First create and save the evaluation form
             evaluation_form = EvaluationForm(
@@ -307,9 +391,9 @@ def fill_evaluation_form(evaluation_id):
                 safety_procedures=form.safety_procedures.data,
                 safety_procedures_remarks=form.safety_procedures_remarks.data,
                 
-                # Section 4
-                overall_rating=form.overall_rating.data,
-                corrective_actions=form.corrective_actions.data,
+                # Section 4 - USING AUTOMATED VALUES
+                overall_rating=calculated_rating,  # Overriding form.overall_rating.data
+                corrective_actions=combined_actions, # Using combined actions
                 additional_comments=form.additional_comments.data,
                 evaluator_signature=form.evaluator_signature.data,
                 signed_date=datetime.now().date()
@@ -351,9 +435,10 @@ def fill_evaluation_form(evaluation_id):
             db.session.add(report)
             print("Added report to session")  # Debug log
             
-            # Update evaluation status
+            # Update evaluation status and Score
             evaluation.Status = 'Completed'
-            print("Updated evaluation status")  # Debug log
+            evaluation.Score = calculated_score  # Update the Score field in the main Evaluation table
+            print(f"Updated evaluation status to Completed with Score: {calculated_score}")  # Debug log
             
             # Commit all changes
             db.session.commit()
